@@ -1,10 +1,12 @@
 ;; alpha - avoidance range
 ;; roh - following range
 ;; p - proportion of informed individuals
+;; weight - value between 0 and 2 to weight there own direction preference
+;; number - number of herd members
 
 turtles-own [
   speed
-  weight
+  omega
   g-dir
   v-dir
 ]
@@ -12,7 +14,7 @@ turtles-own [
 to setup
   clear-all
   reset-ticks
-  create-turtles 100 [
+  create-turtles number [
     set xcor 100
     set ycor 1
   ]
@@ -54,10 +56,10 @@ ticks
 30.0
 
 BUTTON
-106
-79
-175
 115
+16
+184
+52
 go
 go
 NIL
@@ -71,10 +73,10 @@ NIL
 0
 
 BUTTON
-26
-79
-96
-115
+12
+16
+82
+52
 setup
 setup
 NIL
@@ -133,15 +135,41 @@ NIL
 HORIZONTAL
 
 SWITCH
-11
-308
-186
-341
+13
+373
+188
+406
 multiple_directions
 multiple_directions
 1
 1
 -1000
+
+SLIDER
+13
+250
+185
+283
+weight
+weight
+0
+2
+0.0
+0.1
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+12
+69
+172
+129
+number
+NIL
+1
+0
+String
 
 @#$#@#$#@
 @#$#@#$#@
