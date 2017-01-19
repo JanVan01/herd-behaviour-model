@@ -2,7 +2,7 @@
 ;; roh - following range
 ;; p - proportion of informed individuals
 ;; weight - value between 0 and 2 to weight there own direction preference
-;; number - number of herd members
+;; number_herd_members - number of herd members
 
 turtles-own [
   speed
@@ -14,7 +14,7 @@ turtles-own [
 to setup
   clear-all
   reset-ticks
-  create-turtles number [
+  create-turtles number_herd_members [
     set xcor 100
     set ycor 1
   ]
@@ -163,13 +163,13 @@ HORIZONTAL
 INPUTBOX
 12
 69
-172
+173
 129
-number
-NIL
+number_herd_members
+0.0
 1
 0
-String
+Number
 
 @#$#@#$#@
 @#$#@#$#@
