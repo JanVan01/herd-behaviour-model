@@ -1,31 +1,82 @@
-;; alpha - avoidance range
-;; roh - following range
-;; p - proportion of informed individuals
+;; avoidance range radius
+;; following range radius
+;; percent_informed - proportion of informed individuals
 ;; weight - value between 0 and 2 to weight there own direction preference
 ;; number_herd_members - number of herd members
+;; aim-direction - d-dir in paper
+globals [
+  number_informed
+  number_uninformed
+  g-dir ;; preffered direction same for all informed turtles same
+  w ;; weight for all informed turtles same
+]
 
 turtles-own [
-  speed
+  ;; want to maintain minimum distancs alpha
+  speed ;; individual speed
   omega
-  g-dir
-  v-dir
+  v-dir ;; direction vector
+  informed ;; boolean
+  ;; ci (position vector)
+  neighbours-avoid ;; neighours in alpha avoidance range
+  neighbours-follow ;; neighbours in follow range
 ]
 
 to setup
   clear-all
   reset-ticks
-  create-turtles number_herd_members [
-    set xcor 100
-    set ycor 1
+  set w weight
+  set g-dir aim-direction
+  set number_informed (number_herd_members * ( 0.01 * (percent_informed)))
+  set number_uninformed (number_herd_members - number_informed)
+  create-turtles number_informed [
+    set xcor -100
+    set ycor -100
+    set informed true
   ]
-
+  create-turtles number_uninformed [
+    set xcor -100
+    set ycor -100
+    set informed false
+  ]
 end
 
 to go
   ask turtles[
-    forward 10.5
+    move
   ]
   tick
+end
+
+to move
+  find-neighbours-avoid
+  find-neighbours-follow
+  if any? neighbours-avoid
+    [ calculate-dir ] ;; formula 1
+  if any? neighbours-follow
+    [ calculate-dir-with-v ] ;; formula 2
+  if informed
+    [ calculate-dir-with-w-g ] ;; formula 3
+end
+
+to find-neighbours-avoid
+  set neighbours-avoid other turtles in-radius avoidance-range
+end
+
+to find-neighbours-follow
+  set neighbours-follow other turtles in-radius following-range
+end
+
+to calculate-dir ;; formula 1 in paper
+
+end
+
+to calculate-dir-with-v ;; formula 2 in paper
+
+end
+
+to calculate-dir-with-w-g ;; formula 3 in paper
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -62,7 +113,7 @@ BUTTON
 52
 go
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -70,7 +121,7 @@ NIL
 NIL
 NIL
 NIL
-0
+1
 
 BUTTON
 12
@@ -92,10 +143,10 @@ NIL
 SLIDER
 13
 151
-185
+191
 184
-alpha
-alpha
+avoidance-range
+avoidance-range
 0
 100
 50.0
@@ -109,11 +160,11 @@ SLIDER
 184
 185
 217
-roh
-roh
-0
+following-range
+following-range
+avoidance-range
 100
-50.0
+57.0
 1
 1
 NIL
@@ -124,8 +175,8 @@ SLIDER
 217
 185
 250
-p
-p
+percent_informed
+percent_informed
 0
 100
 50.0
@@ -166,10 +217,25 @@ INPUTBOX
 173
 129
 number_herd_members
-0.0
+200.0
 1
 0
 Number
+
+SLIDER
+13
+285
+185
+318
+aim-direction
+aim-direction
+0
+180
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@
