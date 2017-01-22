@@ -1,70 +1,51 @@
-;; avoidance range radius
-;; following range radius
-;; percent_informed - proportion of informed individuals
-;; weight - value between 0 and 2 to weight there own direction preference
-;; number_herd_members - number of herd members
-;; aim-direction - d-dir in paper
+
 globals [
-  number_informed
-  number_uninformed
-  g-dir ;; preffered direction same for all informed turtles same
-  w ;; weight for all informed turtles same
+  ;; avoidance_range
+  ;; following_range
+  ;; percent_informed - proportion of informed individuals
+  ;; number_herd_members - number of herd members
+  ;; weigth - weight with which prefered direction is included
 ]
 
 turtles-own [
-  ;; want to maintain minimum distancs alpha
-  speed ;; individual speed
-  omega
+  speed ;; individual speed (modelled on agent level to add different speeds later)
   v-dir ;; direction vector
-  informed ;; boolean
-  ;; ci (position vector)
-  neighbours-avoid ;; neighours in alpha avoidance range
-  neighbours-follow ;; neighbours in follow range
+  temp-v-dir ;; temporary direction vector that is calculated and applied in the end whe all turtles have calcultated their directions
+  g-dir ;; preffered direction there can be multiple prefered directions
+  w ;; weight with which prefered direction is included
+  ;; c (implicit position vector)
 ]
 
 to setup
   clear-all
   reset-ticks
-  set w weight
-  set g-dir aim-direction
-  set number_informed (number_herd_members * ( 0.01 * (percent_informed)))
-  set number_uninformed (number_herd_members - number_informed)
-  create-turtles number_informed [
+  create-turtles number_herd_members [
     set xcor -100
     set ycor -100
-    set informed true
+    set color blue
+    set w 0
   ]
-  create-turtles number_uninformed [
-    set xcor -100
-    set ycor -100
-    set informed false
+  let number_informed_members (number_herd_members * ( 0.01 * (percent_informed)))
+  ask n-of number_informed_members turtles [
+    set w  weight
+    set color red
   ]
 end
 
 to go
   ask turtles[
-    move
+    ifelse count other turtles in-radius avoidance_range > 0 [
+      ;; avoid them
+      calculate-dir
+    ][
+      if count other turtles in-radius following_range > 0[
+       ;;follow them
+        calculate-dir-with-w-g
+      ]
+    ]
+    forward 1
   ]
   tick
-end
-
-to move
-  find-neighbours-avoid
-  find-neighbours-follow
-  if any? neighbours-avoid
-    [ calculate-dir ] ;; formula 1
-  if any? neighbours-follow
-    [ calculate-dir-with-v ] ;; formula 2
-  if informed
-    [ calculate-dir-with-w-g ] ;; formula 3
-end
-
-to find-neighbours-avoid
-  set neighbours-avoid other turtles in-radius avoidance-range
-end
-
-to find-neighbours-follow
-  set neighbours-follow other turtles in-radius following-range
 end
 
 to calculate-dir ;; formula 1 in paper
@@ -80,10 +61,10 @@ to calculate-dir-with-w-g ;; formula 3 in paper
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-200
-10
-710
-521
+181
+11
+691
+522
 -1
 -1
 2.0
@@ -100,17 +81,17 @@ GRAPHICS-WINDOW
 125
 -125
 125
-1
-1
+0
+0
 1
 ticks
 30.0
 
 BUTTON
-115
-16
-184
-52
+79
+11
+181
+47
 go
 go
 T
@@ -124,10 +105,10 @@ NIL
 1
 
 BUTTON
-12
-16
-82
-52
+9
+11
+79
+47
 setup
 setup
 NIL
@@ -141,40 +122,40 @@ NIL
 1
 
 SLIDER
-13
-151
-191
-184
-avoidance-range
-avoidance-range
+9
+106
+181
+139
+avoidance_range
+avoidance_range
 0
-100
-50.0
+25
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-13
-184
-185
-217
-following-range
-following-range
-avoidance-range
+9
+139
+181
+172
+following_range
+following_range
+avoidance_range
 100
-57.0
+40.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-13
-217
-185
-250
+9
+172
+181
+205
 percent_informed
 percent_informed
 0
@@ -186,10 +167,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-13
-373
-188
-406
+9
+238
+181
+271
 multiple_directions
 multiple_directions
 1
@@ -197,10 +178,10 @@ multiple_directions
 -1000
 
 SLIDER
-13
-250
-185
-283
+9
+205
+181
+238
 weight
 weight
 0
@@ -212,30 +193,15 @@ NIL
 HORIZONTAL
 
 INPUTBOX
-12
-69
-173
-129
+9
+47
+181
+107
 number_herd_members
-200.0
+20.0
 1
 0
 Number
-
-SLIDER
-13
-285
-185
-318
-aim-direction
-aim-direction
-0
-180
-50.0
-1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@
