@@ -11,10 +11,15 @@ globals [
 turtles-own [
   speed ;; individual speed (modelled on agent level to add different speeds later)
   v-dir ;; direction vector - current direction
-  d-dir ;; future direction vector that is calculated and applied in the end whe all turtles have calcultated their directions
   g-dir ;; prefered direction there can be multiple prefered directions
   w ;; weight with which prefered direction is included
   c ;; c (position vector) - location
+  v-dir ;; direction vector (array)
+  d-dir ;; future direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
+  g-dir ;; preffered direction there can be multiple prefered directions
+  w ;; weight with which prefered direction is included
+  ;;temp ;; help temporary vector (array)
+  temp
 ]
 
 to setup
@@ -37,11 +42,18 @@ end
 
 to go
   ask turtles[
-    ifelse count other turtles in-radius avoidance_range > 0 [
+    let base [0 0] ;; base of function calculated in every
+    ifelse any? other turtles in-radius avoidance_range [
       ;; avoid them
-      calculate-dir
+      let ci-dir array:from-list (list xcor ycor)
+      set base [0 0]
+      ask turtles in-radius avoidance_range [
+        let cj-dir array:from-list (list xcor ycor)
+        set base plus-vectors base minus-vectors ci-dir cj-dir ;; add the dividing by absolute vector
+      ]
+      set temp minus-one base
     ][
-      if count other turtles in-radius following_range > 0[
+      if any? other turtles in-radius following_range [
        ;;follow them
         calculate-dir-with-w-g
       ]
@@ -52,8 +64,23 @@ to go
   tick
 end
 
-to calculate-dir ;; formula 1 in paper
 
+to-report minus-one[arr] ;; calculates a vector * -1
+  array:set arr 0 ((array:item arr 0) * (-1))
+  array:set arr 1 ((array:item arr 1) * (-1))
+  report arr
+end
+
+to-report minus-vectors[x y]
+  array:set x 0 ((array:item x 0) - (array:item y 0))
+  array:set x 1 ((array:item x 1) - (array:item y 1))
+  report x
+end
+
+to-report plus-vectors[x y]
+  array:set x 0 ((array:item x 0) + (array:item y 0))
+  array:set x 1 ((array:item x 1) + (array:item y 1))
+  report x
 end
 
 to calculate-dir-with-v ;; formula 2 in paper
