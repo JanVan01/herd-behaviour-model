@@ -14,10 +14,7 @@ turtles-own [
   g-dir ;; prefered direction there can be multiple prefered directions
   w ;; weight with which prefered direction is included
   c ;; c (position vector) - location
-  v-dir ;; direction vector (array)
   d-dir ;; future direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
-  g-dir ;; preffered direction there can be multiple prefered directions
-  w ;; weight with which prefered direction is included
   ;;temp ;; help temporary vector (array)
   temp
 ]
@@ -43,19 +40,25 @@ end
 to go
   ask turtles[
     let base [0 0] ;; base of function calculated in every
+    let ci-dir array:from-list (list xcor ycor) ;; the position vector of actual turtle
     ifelse any? other turtles in-radius avoidance_range [
       ;; avoid them
-      let ci-dir array:from-list (list xcor ycor)
-      set base [0 0]
       ask turtles in-radius avoidance_range [
         let cj-dir array:from-list (list xcor ycor)
-        set base plus-vectors base minus-vectors ci-dir cj-dir ;; add the dividing by absolute vector
+        set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
       ]
       set temp minus-one base
     ][
       if any? other turtles in-radius following_range [
-       ;;follow them
-        calculate-dir-with-w-g
+        ;;follow them
+        let v-sum [0 0]
+        ask turtles in-radius avoidance_range [
+          let cj-dir array:from-list (list xcor ycor)
+          set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
+
+          set v-sum plus-vectors v-sum unit-vector v-sum
+        ]
+        set temp plus-vectors base v-sum
       ]
     ]
     show v-dir
@@ -83,8 +86,10 @@ to-report plus-vectors[x y]
   report x
 end
 
-to calculate-dir-with-v ;; formula 2 in paper
-
+to-report calculate-base[ci-dir cj-dir];; formula 2 in paper
+  let minus minus-vectors ci-dir cj-dir
+  let unit unit-vector minus
+  report unit
 end
 
 to calculate-dir-with-w-g ;; formula 3 in paper
@@ -115,15 +120,14 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
 11
-693
-544
-125
-125
+691
+522
+-1
+-1
 2.0
 1
 10
@@ -187,7 +191,7 @@ avoidance_range
 avoidance_range
 0
 25
-10
+10.0
 1
 1
 NIL
@@ -202,7 +206,7 @@ following_range
 following_range
 avoidance_range
 100
-40
+40.0
 1
 1
 NIL
@@ -217,7 +221,7 @@ percent_informed
 percent_informed
 0
 100
-50
+50.0
 1
 1
 NIL
@@ -243,7 +247,7 @@ weight
 weight
 0
 2
-0
+0.0
 0.1
 1
 NIL
@@ -255,7 +259,7 @@ INPUTBOX
 181
 107
 number_herd_members
-20
+20.0
 1
 0
 Number
@@ -543,9 +547,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 6.0-M6
+NetLogo 6.0
 @#$#@#$#@
 set density 60.0
 setup
@@ -564,7 +567,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@
