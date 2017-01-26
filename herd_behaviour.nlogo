@@ -1,3 +1,4 @@
+extensions [array]
 
 globals [
   ;; avoidance_range
@@ -9,11 +10,11 @@ globals [
 
 turtles-own [
   speed ;; individual speed (modelled on agent level to add different speeds later)
-  v-dir ;; direction vector
-  temp-v-dir ;; temporary direction vector that is calculated and applied in the end whe all turtles have calcultated their directions
-  g-dir ;; preffered direction there can be multiple prefered directions
+  v-dir ;; direction vector - current direction
+  d-dir ;; future direction vector that is calculated and applied in the end whe all turtles have calcultated their directions
+  g-dir ;; prefered direction there can be multiple prefered directions
   w ;; weight with which prefered direction is included
-  ;; c (implicit position vector)
+  c ;; c (position vector) - location
 ]
 
 to setup
@@ -22,6 +23,8 @@ to setup
   create-turtles number_herd_members [
     set xcor -100
     set ycor -100
+    set c array:from-list (list xcor ycor)
+    set v-dir pseudo-random-vector
     set color blue
     set w 0
   ]
@@ -43,6 +46,7 @@ to go
         calculate-dir-with-w-g
       ]
     ]
+    show v-dir
     forward 1
   ]
   tick
@@ -59,14 +63,40 @@ end
 to calculate-dir-with-w-g ;; formula 3 in paper
 
 end
+
+to-report absolute-value[vector]
+  let x array:item vector 0
+  let y array:item vector 1
+
+  report sqrt(x ^ 2 + y ^ 2)
+end
+
+to-report unit-vector[vector]
+  let a absolute-value vector
+  array:set vector 0 (array:item vector 0) / a
+  array:set vector 1 (array:item vector 1) / a
+  report vector
+end
+
+to-report pseudo-random-vector
+  let x (random-float 2) - 1
+  let y (random-float 2) - 1
+  let vector array:from-list (list x y)
+  report unit-vector vector
+end
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
 11
-691
-522
--1
--1
+693
+544
+125
+125
 2.0
 1
 10
@@ -130,7 +160,7 @@ avoidance_range
 avoidance_range
 0
 25
-10.0
+10
 1
 1
 NIL
@@ -145,7 +175,7 @@ following_range
 following_range
 avoidance_range
 100
-40.0
+40
 1
 1
 NIL
@@ -160,7 +190,7 @@ percent_informed
 percent_informed
 0
 100
-50.0
+50
 1
 1
 NIL
@@ -186,7 +216,7 @@ weight
 weight
 0
 2
-0.0
+0
 0.1
 1
 NIL
@@ -198,7 +228,7 @@ INPUTBOX
 181
 107
 number_herd_members
-20.0
+20
 1
 0
 Number
@@ -486,8 +516,9 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
 @#$#@#$#@
-NetLogo 6.0
+NetLogo 6.0-M6
 @#$#@#$#@
 set density 60.0
 setup
@@ -506,6 +537,7 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
+
 @#$#@#$#@
 0
 @#$#@#$#@
