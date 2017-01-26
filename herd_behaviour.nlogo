@@ -29,11 +29,13 @@ to setup
     set v-dir pseudo-random-vector
     set color blue
     set w 0
+    set g-dir [0 0]
   ]
   let number_informed_members (number_herd_members * ( 0.01 * (percent_informed)))
   ask n-of number_informed_members turtles [
     set w  weight
     set color red
+    set g-dir [125 125]
   ]
 end
 
@@ -48,6 +50,11 @@ to go
         set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
       ]
       set temp minus-one base
+      set d-dir unit-vector temp
+      ;; for informed turtles, extra formula 3
+      if w != 0[
+          set d-dir unit-vector plus-vectors d-dir multiply-vector-number g-dir w
+      ]
     ][
       if any? other turtles in-radius following_range [
         ;;follow them
@@ -56,13 +63,20 @@ to go
           let cj-dir array:from-list (list xcor ycor)
           set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
 
-          set v-sum plus-vectors v-sum unit-vector v-sum
+          set v-sum plus-vectors v-sum unit-vector v-dir
         ]
         set temp plus-vectors base v-sum
+        set d-dir unit-vector temp
+
+        ;; for informed turtles, extra formula 3
+        if w != 0[
+          set d-dir unit-vector plus-vectors d-dir multiply-vector-number g-dir w
+        ]
       ]
     ]
     show v-dir
     forward 1
+    ;; where set v-dir d-dir ?
   ]
   tick
 end
@@ -71,6 +85,12 @@ end
 to-report minus-one[arr] ;; calculates a vector * -1
   array:set arr 0 ((array:item arr 0) * (-1))
   array:set arr 1 ((array:item arr 1) * (-1))
+  report arr
+end
+
+to-report multiply-vector-number[arr num] ;; calculates a vector * -1
+  array:set arr 0 ((array:item arr 0) * num)
+  array:set arr 1 ((array:item arr 1) * num)
   report arr
 end
 
