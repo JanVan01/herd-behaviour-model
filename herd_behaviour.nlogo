@@ -39,16 +39,21 @@ end
 
 to go
   ask turtles[
-    let base [0 0] ;; base of function calculated in every
+    ;; temporary direction vector that is available to all turtles in the ask statements below
+    ;; help variable to allow calculation the sum from the formula
     let d-dir-temp array:from-list (list 0 0)
-    let ci c ;; save the position of the turtle to a variable that is available in the ask statements below
-    ifelse any? other turtles in-radius avoidance_range [ ;; avoid them
+    ;; save the position of the turtle to a variable that is available in the ask statements below
+    let ci c
+    ;; case 1 avoidance
+    ifelse any? other turtles in-radius avoidance_range [
       ask other turtles in-radius avoidance_range [
         set d-dir-temp (plus-vectors d-dir-temp unit-vector minus-vectors c ci)
       ]
       set d-dir multiply-vector-number (unit-vector d-dir-temp) -1
     ][
+      ;; case 2 following
       if any? other turtles in-radius following_range [
+        ;; help variable to allow calculation the sum from the formula
         let v-dir-temp v-dir
         ask other turtles in-radius following_range [
           set d-dir-temp (plus-vectors d-dir-temp unit-vector minus-vectors c ci)
@@ -56,17 +61,19 @@ to go
         ]
         set d-dir unit-vector (plus-vectors d-dir-temp v-dir-temp)
 
+        ;; including the prefered direction
         set d-dir unit-vector (plus-vectors d-dir multiply-vector-number g-dir w)
       ]
     ]
   ]
+  ;; set the direction to the newly calculated one
+  set v-dir d-dir
   move
   tick
 end
 
 to move
   ask turtles [
-    set v-dir d-dir
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
