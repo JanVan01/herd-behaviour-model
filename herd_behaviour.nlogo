@@ -15,119 +15,98 @@ turtles-own [
   w ;; weight with which prefered direction is included
   c ;; c (position vector) - location
   d-dir ;; future direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
-  ;;temp ;; help temporary vector (array)
-  temp
 ]
 
 to setup
   clear-all
   reset-ticks
   create-turtles number_herd_members [
-    set xcor -100
-    set ycor -100
+    set xcor (random-float 10) - 100
+    set ycor (random-float 10) - 100
     set c array:from-list (list xcor ycor)
     set v-dir pseudo-random-vector
     set color blue
     set w 0
-    set g-dir [0 0]
+    set g-dir unit-vector array:from-list(list 1 1)
+    set speed 1.5
   ]
   let number_informed_members (number_herd_members * ( 0.01 * (percent_informed)))
   ask n-of number_informed_members turtles [
     set w  weight
     set color red
-    set g-dir [125 125]
   ]
 end
 
 to go
   ask turtles[
     let base [0 0] ;; base of function calculated in every
-    let ci-dir array:from-list (list xcor ycor) ;; the position vector of actual turtle
-    ifelse any? other turtles in-radius avoidance_range [
-      ;; avoid them
-      ask turtles in-radius avoidance_range [
-        let cj-dir array:from-list (list xcor ycor)
-        set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
+    let d-dir-temp array:from-list (list 0 0)
+    let ci c ;; save the position of the turtle to a variable that is available in the ask statements below
+    ifelse any? other turtles in-radius avoidance_range [ ;; avoid them
+      ask other turtles in-radius avoidance_range [
+        set d-dir-temp (plus-vectors d-dir-temp unit-vector minus-vectors c ci)
       ]
-      set temp minus-one base
-      set d-dir unit-vector temp
-      ;; for informed turtles, extra formula 3
-      if w != 0[
-          set d-dir unit-vector plus-vectors d-dir multiply-vector-number g-dir w
-      ]
+      set d-dir multiply-vector-number (unit-vector d-dir-temp) -1
     ][
       if any? other turtles in-radius following_range [
-        ;;follow them
-        let v-sum [0 0]
-        ask turtles in-radius avoidance_range [
-          let cj-dir array:from-list (list xcor ycor)
-          set base plus-vectors base calculate-base ci-dir cj-dir;; add the dividing by absolute vector
-
-          set v-sum plus-vectors v-sum unit-vector v-dir
+        let v-dir-temp v-dir
+        ask other turtles in-radius following_range [
+          set d-dir-temp (plus-vectors d-dir-temp unit-vector minus-vectors c ci)
+          set v-dir-temp (plus-vectors v-dir-temp unit-vector v-dir)
         ]
-        set temp plus-vectors base v-sum
-        set d-dir unit-vector temp
+        set d-dir unit-vector (plus-vectors d-dir-temp v-dir-temp)
 
-        ;; for informed turtles, extra formula 3
-        if w != 0[
-          set d-dir unit-vector plus-vectors d-dir multiply-vector-number g-dir w
-        ]
+        set d-dir unit-vector (plus-vectors d-dir multiply-vector-number g-dir w)
       ]
     ]
-    show v-dir
-    forward 1
-    ;; where set v-dir d-dir ?
   ]
+  move
   tick
 end
 
-
-to-report minus-one[arr] ;; calculates a vector * -1
-  array:set arr 0 ((array:item arr 0) * (-1))
-  array:set arr 1 ((array:item arr 1) * (-1))
-  report arr
+to move
+  ask turtles [
+    set v-dir d-dir
+    let temp-v multiply-vector-number v-dir speed
+    set c plus-vectors c temp-v
+    set xcor array:item c 0
+    set ycor array:item c 1
+  ]
 end
 
-to-report multiply-vector-number[arr num] ;; calculates a vector * -1
-  array:set arr 0 ((array:item arr 0) * num)
-  array:set arr 1 ((array:item arr 1) * num)
-  report arr
+to-report multiply-vector-number[arr num] ;; multiplys a vector and a scalar
+  let result array:from-list (list 0 0)
+  array:set result 0 ((array:item arr 0) * num)
+  array:set result 1 ((array:item arr 1) * num)
+  report result
 end
 
 to-report minus-vectors[x y]
-  array:set x 0 ((array:item x 0) - (array:item y 0))
-  array:set x 1 ((array:item x 1) - (array:item y 1))
-  report x
+  let result array:from-list (list 0 0)
+  array:set result 0 ((array:item x 0) - (array:item y 0))
+  array:set result 1 ((array:item x 1) - (array:item y 1))
+  report result
 end
 
 to-report plus-vectors[x y]
-  array:set x 0 ((array:item x 0) + (array:item y 0))
-  array:set x 1 ((array:item x 1) + (array:item y 1))
-  report x
-end
-
-to-report calculate-base[ci-dir cj-dir];; formula 2 in paper
-  let minus minus-vectors ci-dir cj-dir
-  let unit unit-vector minus
-  report unit
-end
-
-to calculate-dir-with-w-g ;; formula 3 in paper
-
+  let result array:from-list (list 0 0)
+  array:set result 0 ((array:item x 0) + (array:item y 0))
+  array:set result 1 ((array:item x 1) + (array:item y 1))
+  report result
 end
 
 to-report absolute-value[vector]
   let x array:item vector 0
   let y array:item vector 1
-
   report sqrt(x ^ 2 + y ^ 2)
 end
 
 to-report unit-vector[vector]
   let a absolute-value vector
-  array:set vector 0 (array:item vector 0) / a
-  array:set vector 1 (array:item vector 1) / a
-  report vector
+  let result array:from-list (list 0 0)
+  array:set result 0 (array:item vector 0) / a
+  array:set result 1 (array:item vector 1) / a
+  report result
 end
 
 to-report pseudo-random-vector
@@ -136,7 +115,6 @@ to-report pseudo-random-vector
   let vector array:from-list (list x y)
   report unit-vector vector
 end
-
 
 
 
@@ -155,15 +133,15 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -125
 125
 -125
 125
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -211,7 +189,7 @@ avoidance_range
 avoidance_range
 0
 25
-10.0
+1.0
 1
 1
 NIL
@@ -241,7 +219,7 @@ percent_informed
 percent_informed
 0
 100
-50.0
+49.0
 1
 1
 NIL
@@ -267,7 +245,7 @@ weight
 weight
 0
 2
-0.0
+1.1
 0.1
 1
 NIL
@@ -279,7 +257,7 @@ INPUTBOX
 181
 107
 number_herd_members
-20.0
+100.0
 1
 0
 Number
