@@ -117,7 +117,6 @@ to-report pseudo-random-vector
 end
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
@@ -204,7 +203,7 @@ following_range
 following_range
 avoidance_range
 100
-40.0
+50.0
 1
 1
 NIL
