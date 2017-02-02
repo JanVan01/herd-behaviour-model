@@ -65,9 +65,9 @@ to go
         set d-dir unit-vector (plus-vectors d-dir multiply-vector-number g-dir w)
       ]
     ]
+    ;; set the direction to the newly calculated one
+    set v-dir d-dir
   ]
-  ;; set the direction to the newly calculated one
-  set v-dir d-dir
   move
   tick
 end
@@ -122,7 +122,6 @@ to-report pseudo-random-vector
   let vector array:from-list (list x y)
   report unit-vector vector
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -194,9 +193,9 @@ SLIDER
 avoidance_range
 avoidance_range
 0
-25
-1.0
-1
+2
+1.5
+0.1
 1
 NIL
 HORIZONTAL
@@ -210,7 +209,7 @@ following_range
 following_range
 avoidance_range
 100
-50.0
+65.0
 1
 1
 NIL
@@ -225,7 +224,7 @@ percent_informed
 percent_informed
 0
 100
-49.0
+40.0
 1
 1
 NIL
@@ -251,7 +250,7 @@ weight
 weight
 0
 2
-1.1
+1.2
 0.1
 1
 NIL
