@@ -65,8 +65,6 @@ to go
         set d-dir unit-vector (plus-vectors d-dir multiply-vector-number g-dir w)
       ]
     ]
-    ;; set the direction to the newly calculated one
-    set v-dir d-dir
   ]
   move
   tick
@@ -74,6 +72,8 @@ end
 
 to move
   ask turtles [
+    ;; set the direction to the newly calculated one
+    set v-dir d-dir
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
@@ -122,7 +122,6 @@ to-report pseudo-random-vector
   let vector array:from-list (list x y)
   report unit-vector vector
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
