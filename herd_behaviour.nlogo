@@ -166,7 +166,7 @@ to-report normalized-angle-deviation[a b]
   set result (1 - result)
   report result
 end
-=======
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
