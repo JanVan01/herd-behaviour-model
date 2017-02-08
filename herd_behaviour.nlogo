@@ -162,6 +162,56 @@ to-report calculate-accuracy[a b]
   report result
 end
 
+to-report calculate-cross-product[a b]
+  let result array:from-list (list 0 0 0)
+  array:set result 0 ((array:item a 1) * (array:item b 2)) - ((array:item a 2) * (array:item b 1))
+  array:set result 1 ((array:item a 2) * (array:item b 0)) - ((array:item a 0) * (array:item b 2))
+  array:set result 2 ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
+  report result
+end
+
+
+to-report minus-vectors-threeD[x y]
+  let result array:from-list (list 0 0 0)
+  array:set result 0 ((array:item x 0) - (array:item y 0))
+  array:set result 1 ((array:item x 1) - (array:item y 1))
+  array:set result 2 ((array:item x 2) - (array:item y 2))
+  report result
+end
+
+to-report absolute-value-threeD[vector]
+  let x array:item vector 0
+  let y array:item vector 1
+  let z array:item vector 2
+  report sqrt(x ^ 2 + y ^ 2 + z ^ 2)
+end
+
+to-report calculate-distance[a b d] ;; centroid average-direction point
+  ;; make three dimensional vectors
+  let a3 array:from-list (list 0 0 0)
+  let b3 array:from-list (list 0 0 0)
+  let d3 array:from-list (list 0 0 0)
+  array:set a3 0 array:item a 0
+  array:set a3 1 array:item a 1
+  array:set a3 2 0
+  array:set b3 0 array:item b 0
+  array:set b3 1 array:item b 1
+  array:set b3 2 0
+  array:set d3 0 array:item d 0
+  array:set d3 1 array:item d 1
+  array:set d3 2 0
+  report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
+end
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
@@ -233,7 +283,7 @@ avoidance_range
 avoidance_range
 0
 2
-1.5
+1.0
 0.1
 1
 NIL
@@ -248,7 +298,7 @@ following_range
 following_range
 avoidance_range
 100
-100.0
+50.0
 1
 1
 NIL
@@ -263,7 +313,7 @@ percent_informed
 percent_informed
 0
 100
-10.0
+20.0
 1
 1
 NIL
@@ -289,7 +339,7 @@ weight
 weight
 0
 2
-0.5
+1.0
 0.1
 1
 NIL
@@ -315,7 +365,7 @@ speed
 speed
 0
 10
-2.0
+3.0
 0.1
 1
 NIL
