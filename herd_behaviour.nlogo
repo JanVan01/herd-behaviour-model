@@ -71,8 +71,6 @@ to go
         set d-dir unit-vector (plus-vectors d-dir multiply-vector-number g-dir w)
       ]
     ]
-    ;; set the direction to the newly calculated one
-    set v-dir d-dir
   ]
   move
   array:set centroid-array (ticks mod 50) calculate-centroid
@@ -85,6 +83,8 @@ end
 
 to move
   ask turtles [
+    ;; set the direction to the newly calculated one
+    set v-dir d-dir
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
@@ -161,6 +161,7 @@ to-report calculate-accuracy[a b]
   set result (1 - result)
   report result
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
