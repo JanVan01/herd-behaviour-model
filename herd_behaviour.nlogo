@@ -1,6 +1,10 @@
 extensions [array]
 
 globals [
+  centroid-array
+  average-direction
+  accuracy
+  g-dir ;; prefered direction there can be multiple prefered directions
   ;; avoidance_range
   ;; following_range
   ;; percent_informed - proportion of informed individuals
@@ -9,9 +13,8 @@ globals [
 ]
 
 turtles-own [
-  speed ;; individual speed (modelled on agent level to add different speeds later)
   v-dir ;; direction vector - current direction
-  g-dir ;; prefered direction there can be multiple prefered directions
+
   w ;; weight with which prefered direction is included
   c ;; c (position vector) - location
   d-dir ;; future direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
@@ -20,6 +23,11 @@ turtles-own [
 to setup
   clear-all
   reset-ticks
+  set centroid-array array:from-list n-values 50 [0]
+  set g-dir unit-vector array:from-list(list 1 1)
+  ;;array:set g-dir 0 1
+  ;;array:set g-dir 1 1
+
   create-turtles number_herd_members [
     set xcor (random-float 10) - 100
     set ycor (random-float 10) - 100
@@ -27,8 +35,6 @@ to setup
     set v-dir pseudo-random-vector
     set color blue
     set w 0
-    set g-dir unit-vector array:from-list(list 1 1)
-    set speed 1.5
   ]
   let number_informed_members (number_herd_members * ( 0.01 * (percent_informed)))
   ask n-of number_informed_members turtles [
@@ -67,6 +73,11 @@ to go
     ]
   ]
   move
+  array:set centroid-array (ticks mod 50) calculate-centroid
+  if ticks > 50[
+    set average-direction unit-vector calculate-average-direction
+    set accuracy calculate-accuracy average-direction g-dir
+  ]
   tick
 end
 
@@ -86,6 +97,10 @@ to-report multiply-vector-number[arr num] ;; multiplys a vector and a scalar
   array:set result 0 ((array:item arr 0) * num)
   array:set result 1 ((array:item arr 1) * num)
   report result
+end
+
+to-report multiply-vector-vector[a b] ;; multiplys a vector by a vector
+  report ((array:item a 0) * (array:item b 0)) + ((array:item a 1) * (array:item b 1))
 end
 
 to-report minus-vectors[x y]
@@ -122,6 +137,81 @@ to-report pseudo-random-vector
   let vector array:from-list (list x y)
   report unit-vector vector
 end
+
+to-report calculate-centroid
+  let centroid array:from-list (list 0 0)
+  ask turtles[
+    set centroid plus-vectors centroid c
+  ]
+  set centroid multiply-vector-number centroid (1 / (count turtles))
+  report centroid
+end
+
+to-report calculate-average-direction
+  report minus-vectors array:item centroid-array (ticks mod 50) array:item centroid-array ((ticks + 1) mod 50)
+end
+
+to-report calculate-angle-deviation[a b]
+  report (multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b))
+end
+
+to-report calculate-accuracy[a b]
+  let result calculate-angle-deviation a b
+  set result ((acos result) / 360)
+  set result (1 - result)
+  report result
+end
+
+to-report calculate-cross-product[a b]
+  let result array:from-list (list 0 0 0)
+  array:set result 0 ((array:item a 1) * (array:item b 2)) - ((array:item a 2) * (array:item b 1))
+  array:set result 1 ((array:item a 2) * (array:item b 0)) - ((array:item a 0) * (array:item b 2))
+  array:set result 2 ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
+  report result
+end
+
+
+to-report minus-vectors-threeD[x y]
+  let result array:from-list (list 0 0 0)
+  array:set result 0 ((array:item x 0) - (array:item y 0))
+  array:set result 1 ((array:item x 1) - (array:item y 1))
+  array:set result 2 ((array:item x 2) - (array:item y 2))
+  report result
+end
+
+to-report absolute-value-threeD[vector]
+  let x array:item vector 0
+  let y array:item vector 1
+  let z array:item vector 2
+  report sqrt(x ^ 2 + y ^ 2 + z ^ 2)
+end
+
+to-report calculate-distance[a b d] ;; centroid average-direction point
+  ;; make three dimensional vectors
+  let a3 array:from-list (list 0 0 0)
+  let b3 array:from-list (list 0 0 0)
+  let d3 array:from-list (list 0 0 0)
+  array:set a3 0 array:item a 0
+  array:set a3 1 array:item a 1
+  array:set a3 2 0
+  array:set b3 0 array:item b 0
+  array:set b3 1 array:item b 1
+  array:set b3 2 0
+  array:set d3 0 array:item d 0
+  array:set d3 1 array:item d 1
+  array:set d3 2 0
+  report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
+end
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
@@ -186,14 +276,14 @@ NIL
 
 SLIDER
 9
-106
+219
 181
-139
+252
 avoidance_range
 avoidance_range
 0
 2
-1.5
+1.0
 0.1
 1
 NIL
@@ -201,14 +291,14 @@ HORIZONTAL
 
 SLIDER
 9
-139
+252
 181
-172
+285
 following_range
 following_range
 avoidance_range
 100
-65.0
+50.0
 1
 1
 NIL
@@ -216,14 +306,14 @@ HORIZONTAL
 
 SLIDER
 9
-172
+108
 181
-205
+141
 percent_informed
 percent_informed
 0
 100
-40.0
+20.0
 1
 1
 NIL
@@ -231,9 +321,9 @@ HORIZONTAL
 
 SWITCH
 9
-238
+174
 181
-271
+207
 multiple_directions
 multiple_directions
 1
@@ -242,14 +332,14 @@ multiple_directions
 
 SLIDER
 9
-205
+141
 181
-238
+174
 weight
 weight
 0
 2
-1.2
+1.0
 0.1
 1
 NIL
@@ -261,10 +351,87 @@ INPUTBOX
 181
 107
 number_herd_members
-100.0
+200.0
 1
 0
 Number
+
+SLIDER
+9
+285
+181
+318
+speed
+speed
+0
+10
+3.0
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+699
+11
+899
+161
+accuracy
+NIL
+NIL
+0.0
+200.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot accuracy"
+
+MONITOR
+699
+161
+770
+206
+NIL
+accuracy
+5
+1
+11
+
+MONITOR
+181
+522
+521
+567
+NIL
+average-direction
+5
+1
+11
+
+MONITOR
+344
+567
+671
+612
+NIL
+calculate-angle-deviation average-direction g-dir
+17
+1
+11
+
+MONITOR
+521
+522
+858
+567
+NIL
+g-dir
+17
+1
+11
 
 @#$#@#$#@
 @#$#@#$#@
