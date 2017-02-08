@@ -78,7 +78,7 @@ to go
   array:set centroid-array (ticks mod 50) calculate-centroid
   if ticks > 50[
     set average-direction unit-vector calculate-average-direction
-    set accuracy normalized-angle-deviation average-direction g-dir
+    set accuracy calculate-accuracy average-direction g-dir
   ]
   tick
 end
@@ -100,9 +100,7 @@ to-report multiply-vector-number[arr num] ;; multiplys a vector and a scalar
 end
 
 to-report multiply-vector-vector[a b] ;; multiplys a vector by a vector
-  let result 0
-  set result ((array:item a 0) * (array:item b 0)) + ((array:item a 1) * (array:item b 1))
-  report result
+  report ((array:item a 0) * (array:item b 0)) + ((array:item a 1) * (array:item b 1))
 end
 
 to-report minus-vectors[x y]
@@ -154,15 +152,12 @@ to-report calculate-average-direction
 end
 
 to-report calculate-angle-deviation[a b]
-  let result 0
-  set result (multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b))
-  set result ((acos result) / 360)
-  report result
+  report (multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b))
 end
 
-to-report normalized-angle-deviation[a b]
-  let result 0
-  set result calculate-angle-deviation a b
+to-report calculate-accuracy[a b]
+  let result calculate-angle-deviation a b
+  set result ((acos result) / 360)
   set result (1 - result)
   report result
 end
@@ -237,7 +232,7 @@ avoidance_range
 avoidance_range
 0
 2
-0.2
+1.5
 0.1
 1
 NIL
@@ -252,7 +247,7 @@ following_range
 following_range
 avoidance_range
 100
-5.2
+100.0
 1
 1
 NIL
@@ -293,7 +288,7 @@ weight
 weight
 0
 2
-1.0
+0.5
 0.1
 1
 NIL
@@ -305,7 +300,7 @@ INPUTBOX
 181
 107
 number_herd_members
-10.0
+200.0
 1
 0
 Number
@@ -319,7 +314,7 @@ speed
 speed
 0
 10
-0.1
+2.0
 0.1
 1
 NIL
