@@ -25,7 +25,7 @@ turtles-own [
 to setup
   clear-all
   reset-ticks
-  set window 50 ;; window-size for calculating group direction
+  set window 25 ;; window-size for calculating group direction
   set centroid-array array:from-list n-values window [0]
   set g-dir unit-vector array:from-list(list 1 1)
 
@@ -82,8 +82,8 @@ to go
     set accuracy calculate-accuracy average-direction g-dir
 
     ;; calculation of group elongation
-    let bbxlength 2 * calculate-maxlength
-    let bbxwidth 2 * calculate-maxwidth
+    let bbxlength calculate-maxlength
+    let bbxwidth calculate-maxwidth
     set elongation (bbxlength / bbxwidth)
   ]
   tick
@@ -213,18 +213,25 @@ end
 
 to-report calculate-maxwidth
   let maxwidth 0
+  let maxwidth2 0
   let centroid calculate-centroid
   ask turtles[
     let mydistance calculate-distance centroid average-direction c
     if maxwidth < mydistance [
       set maxwidth mydistance
     ]
+    if maxwidth > mydistance [
+     if mydistance > maxwidth2 [
+      set maxwidth2 mydistance
+     ]
+    ]
   ]
-  report maxwidth
+  report maxwidth + maxwidth2
 end
 
 to-report calculate-maxlength
   let maxlength 0
+  let maxlength2 0
   let centroid calculate-centroid
   let orthogonal array:from-list (list 0 0)
   array:set orthogonal 0 array:item average-direction 1
@@ -234,8 +241,13 @@ to-report calculate-maxlength
     if maxlength < mydistance [
       set maxlength mydistance
     ]
+    if maxlength > mydistance [
+     if mydistance > maxlength2 [
+      set maxlength2 mydistance
+     ]
+    ]
   ]
-  report maxlength
+  report maxlength + maxlength2
 end
 
 
