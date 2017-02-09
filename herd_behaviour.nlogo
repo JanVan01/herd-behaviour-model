@@ -4,6 +4,7 @@ globals [
   centroid-array
   average-direction
   accuracy
+  elongation
   g-dir ;; prefered direction there can be multiple prefered directions
   ;; avoidance_range
   ;; following_range
@@ -73,11 +74,18 @@ to go
     ]
   ]
   move
+
+  ;; calculation of group accuracy
   array:set centroid-array (ticks mod 50) calculate-centroid
   if ticks > 50[
     set average-direction unit-vector calculate-average-direction
     set accuracy calculate-accuracy average-direction g-dir
   ]
+
+  ;; calculation of group elongation
+  let bbxlength 2 * calculate-maxlength
+  let bbxwidth 2 * calculate-maxwidth
+  set elongation (bbxlength / bbxwidth)
   tick
 end
 
@@ -203,8 +211,32 @@ to-report calculate-distance[a b d] ;; centroid average-direction point
   report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
 end
 
+to-report calculate-maxlength
+  let maxlength 0
+  let centroid calculate-centroid
+  ask turtles[
+    let mydistance calculate-distance centroid average-direction c
+    if maxlength < mydistance [
+      set maxlength mydistance
+    ]
+  ]
+  report maxlength
+end
 
-
+to-report calculate-maxwidth
+  let maxwidth 0
+  let centroid calculate-centroid
+  let orthogonal array:from-list (list 0 0)
+  array:set orthogonal 0 array:item average-direction 1
+  array:set orthogonal 1 (-1) * (array:item average-direction 0)
+  ask turtles[
+    let mydistance calculate-distance centroid orthogonal c
+    if maxwidth < mydistance [
+      set maxwidth mydistance
+    ]
+  ]
+  report maxwidth
+end
 
 
 
@@ -430,6 +462,35 @@ MONITOR
 NIL
 g-dir
 17
+1
+11
+
+PLOT
+699
+208
+899
+358
+elongation
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot elongation"
+
+MONITOR
+699
+358
+770
+403
+NIL
+elongation
+5
 1
 11
 
