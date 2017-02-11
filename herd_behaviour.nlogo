@@ -208,7 +208,7 @@ to-report calculate-distance[a b d] ;; centroid average-direction point
   array:set d3 0 array:item d 0
   array:set d3 1 array:item d 1
   array:set d3 2 0
-  report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
+  report absolute-value-threeD (calculate-cross-product minus-vectors-threeD d3 a3 b3) / absolute-value-threeD b3
 end
 
 to-report calculate-maxwidth
@@ -249,7 +249,6 @@ to-report calculate-maxlength
   ]
   report maxlength + maxlength2
 end
-
 
 
 
