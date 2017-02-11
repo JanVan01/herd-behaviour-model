@@ -42,6 +42,15 @@ to setup
     set w  weight
     set color red
   ]
+  let t1 array:from-list (list 1 1)
+  let t2 array:from-list (list 1 0)
+  let t3 array:from-list (list 0 1)
+  print calculate-angle-deviation t1 t2
+  print calculate-angle-deviation t1 t3
+  print rotate-vector t1 45
+  print absolute-value rotate-vector t1 45
+  print rotate-vector t1 -90
+  print absolute-value rotate-vector t1 90
 end
 
 to go
@@ -160,12 +169,12 @@ to-report calculate-average-direction
 end
 
 to-report calculate-angle-deviation[a b]
-  report (multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b))
+  report acos ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
 end
 
 to-report calculate-accuracy[a b]
   let result calculate-angle-deviation a b
-  set result ((acos result) / 360)
+  set result (result / 360)
   set result (1 - result)
   report result
 end
@@ -220,9 +229,15 @@ to-report calculate-maxlength
   report maxlength + maxlength2
 end
 
-
-
-
+;; rotates a vector angle degrees left
+to-report rotate-vector [vector angle]
+  let result array:from-list (list 0 0)
+  let x array:item vector 0
+  let y array:item vector 1
+  array:set result 0 (x * cos angle) - (y * sin angle);
+  array:set result 1 (x * sin angle) + (y * cos angle);
+  report result
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
