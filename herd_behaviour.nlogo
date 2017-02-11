@@ -170,45 +170,15 @@ to-report calculate-accuracy[a b]
   report result
 end
 
-to-report calculate-cross-product[a b]
-  let result array:from-list (list 0 0 0)
-  array:set result 0 ((array:item a 1) * (array:item b 2)) - ((array:item a 2) * (array:item b 1))
-  array:set result 1 ((array:item a 2) * (array:item b 0)) - ((array:item a 0) * (array:item b 2))
-  array:set result 2 ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
-  report result
+;; calculates the distance between the point d and the straight line define by the point a and the direction b
+;; https://de.serlo.org/mathe/geometrie/analytische-geometrie/abstaende-winkel/abstaende/abstand-punktes-einer-geraden-berechnen-analytische-geometrie
+to-report calculate-distance [a b d]
+  report abs (calculate-z-component-2d-crossproduct (minus-vectors d a) b) / absolute-value b
 end
 
-
-to-report minus-vectors-threeD[x y]
-  let result array:from-list (list 0 0 0)
-  array:set result 0 ((array:item x 0) - (array:item y 0))
-  array:set result 1 ((array:item x 1) - (array:item y 1))
-  array:set result 2 ((array:item x 2) - (array:item y 2))
-  report result
-end
-
-to-report absolute-value-threeD[vector]
-  let x array:item vector 0
-  let y array:item vector 1
-  let z array:item vector 2
-  report sqrt(x ^ 2 + y ^ 2 + z ^ 2)
-end
-
-to-report calculate-distance[a b d] ;; centroid average-direction point
-  ;; make three dimensional vectors
-  let a3 array:from-list (list 0 0 0)
-  let b3 array:from-list (list 0 0 0)
-  let d3 array:from-list (list 0 0 0)
-  array:set a3 0 array:item a 0
-  array:set a3 1 array:item a 1
-  array:set a3 2 0
-  array:set b3 0 array:item b 0
-  array:set b3 1 array:item b 1
-  array:set b3 2 0
-  array:set d3 0 array:item d 0
-  array:set d3 1 array:item d 1
-  array:set d3 2 0
-  report absolute-value-threeD (calculate-cross-product minus-vectors-threeD d3 a3 b3) / absolute-value-threeD b3
+;; http://stackoverflow.com/a/243984
+to-report calculate-z-component-2d-crossproduct [a b]
+  report ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
 end
 
 to-report calculate-maxwidth
@@ -249,7 +219,6 @@ to-report calculate-maxlength
   ]
   report maxlength + maxlength2
 end
-
 
 
 
