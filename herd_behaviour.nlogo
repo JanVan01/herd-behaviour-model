@@ -4,7 +4,9 @@ globals [
   centroid-array
   average-direction
   accuracy
+  elongation
   g-dir ;; prefered direction there can be multiple prefered directions
+  window
   ;; avoidance_range
   ;; following_range
   ;; percent_informed - proportion of informed individuals
@@ -23,10 +25,9 @@ turtles-own [
 to setup
   clear-all
   reset-ticks
-  set centroid-array array:from-list n-values 50 [0]
+  set window 25 ;; window-size for calculating group direction
+  set centroid-array array:from-list n-values window [0]
   set g-dir unit-vector array:from-list(list 1 1)
-  ;;array:set g-dir 0 1
-  ;;array:set g-dir 1 1
 
   create-turtles number_herd_members [
     set xcor (random-float 10) - 100
@@ -73,10 +74,17 @@ to go
     ]
   ]
   move
-  array:set centroid-array (ticks mod 50) calculate-centroid
-  if ticks > 50[
+
+  ;; calculation of group accuracy
+  array:set centroid-array (ticks mod window) calculate-centroid
+  if ticks > window[
     set average-direction unit-vector calculate-average-direction
     set accuracy calculate-accuracy average-direction g-dir
+
+    ;; calculation of group elongation
+    let bbxlength calculate-maxlength
+    let bbxwidth calculate-maxwidth
+    set elongation (bbxlength / bbxwidth)
   ]
   tick
 end
@@ -148,7 +156,7 @@ to-report calculate-centroid
 end
 
 to-report calculate-average-direction
-  report minus-vectors array:item centroid-array (ticks mod 50) array:item centroid-array ((ticks + 1) mod 50)
+  report minus-vectors array:item centroid-array (ticks mod window) array:item centroid-array ((ticks + 1) mod window)
 end
 
 to-report calculate-angle-deviation[a b]
@@ -203,9 +211,44 @@ to-report calculate-distance[a b d] ;; centroid average-direction point
   report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
 end
 
+to-report calculate-maxwidth
+  let maxwidth 0
+  let maxwidth2 0
+  let centroid calculate-centroid
+  ask turtles[
+    let mydistance calculate-distance centroid average-direction c
+    if maxwidth < mydistance [
+      set maxwidth mydistance
+    ]
+    if maxwidth > mydistance [
+     if mydistance > maxwidth2 [
+      set maxwidth2 mydistance
+     ]
+    ]
+  ]
+  report maxwidth + maxwidth2
+end
 
-
-
+to-report calculate-maxlength
+  let maxlength 0
+  let maxlength2 0
+  let centroid calculate-centroid
+  let orthogonal array:from-list (list 0 0)
+  array:set orthogonal 0 array:item average-direction 1
+  array:set orthogonal 1 (-1) * (array:item average-direction 0)
+  ask turtles[
+    let mydistance calculate-distance centroid orthogonal c
+    if maxlength < mydistance [
+      set maxlength mydistance
+    ]
+    if maxlength > mydistance [
+     if mydistance > maxlength2 [
+      set maxlength2 mydistance
+     ]
+    ]
+  ]
+  report maxlength + maxlength2
+end
 
 
 
@@ -365,7 +408,7 @@ speed
 speed
 0
 10
-3.0
+5.5
 0.1
 1
 NIL
@@ -430,6 +473,35 @@ MONITOR
 NIL
 g-dir
 17
+1
+11
+
+PLOT
+699
+208
+899
+358
+elongation
+NIL
+NIL
+0.0
+200.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot elongation"
+
+MONITOR
+699
+358
+770
+403
+NIL
+elongation
+5
 1
 11
 
