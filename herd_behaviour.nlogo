@@ -42,18 +42,27 @@ to setup
     set w  weight
     set color red
   ]
-  let t1 array:from-list (list 1 1)
-  let t2 array:from-list (list 1 0)
-  let t3 array:from-list (list 0 1)
-  print calculate-angle-deviation t1 t2
-  print calculate-angle-deviation t1 t3
-  print rotate-vector t1 45
-  print absolute-value rotate-vector t1 45
-  print rotate-vector t1 -90
-  print absolute-value rotate-vector t1 90
 end
 
 to go
+  find-desired-direction
+  move
+
+  ;; calculation of group accuracy
+  array:set centroid-array (ticks mod window) calculate-centroid
+  if ticks > window[
+    set average-direction unit-vector calculate-average-direction
+    set accuracy calculate-accuracy average-direction g-dir
+
+    ;; calculation of group elongation
+    let bbxlength calculate-maxlength
+    let bbxwidth calculate-maxwidth
+    set elongation (bbxlength / bbxwidth)
+  ]
+  tick
+end
+
+to find-desired-direction
   ask turtles[
     ;; temporary direction vector that is available to all turtles in the ask statements below
     ;; help variable to allow calculation the sum from the formula
@@ -82,30 +91,29 @@ to go
       ]
     ]
   ]
-  move
-
-  ;; calculation of group accuracy
-  array:set centroid-array (ticks mod window) calculate-centroid
-  if ticks > window[
-    set average-direction unit-vector calculate-average-direction
-    set accuracy calculate-accuracy average-direction g-dir
-
-    ;; calculation of group elongation
-    let bbxlength calculate-maxlength
-    let bbxwidth calculate-maxwidth
-    set elongation (bbxlength / bbxwidth)
-  ]
-  tick
 end
 
 to move
   ask turtles [
+    turn-in-desired-direction
     ;; set the direction to the newly calculated one
-    set v-dir d-dir
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
     set ycor array:item c 1
+  ]
+end
+
+to turn-in-desired-direction
+  ifelse calculate-angle-deviation v-dir d-dir <= max_turn_angle [
+    ;; The angle is smaller than the maximum turning angle
+    set v-dir d-dir
+  ][
+    ifelse calculate-z-component-2d-crossproduct v-dir d-dir >= 0 [
+      set v-dir rotate-vector v-dir (max_turn_angle * -1)
+    ][
+      set v-dir rotate-vector v-dir max_turn_angle
+    ]
   ]
 end
 
@@ -309,7 +317,7 @@ avoidance_range
 avoidance_range
 0
 2
-1.0
+0.5
 0.1
 1
 NIL
@@ -339,7 +347,7 @@ percent_informed
 percent_informed
 0
 100
-20.0
+100.0
 1
 1
 NIL
@@ -377,7 +385,7 @@ INPUTBOX
 181
 107
 number_herd_members
-200.0
+5.0
 1
 0
 Number
@@ -391,7 +399,7 @@ speed
 speed
 0
 10
-5.5
+2.0
 0.1
 1
 NIL
@@ -487,6 +495,21 @@ elongation
 5
 1
 11
+
+SLIDER
+9
+318
+181
+351
+max_turn_angle
+max_turn_angle
+0
+180
+61.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@
