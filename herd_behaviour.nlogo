@@ -45,12 +45,12 @@ to setup
   let t1 array:from-list (list 1 1)
   let t2 array:from-list (list 1 0)
   let t3 array:from-list (list 0 1)
-  print calculate-angle-deviation t1 t2
-  print calculate-angle-deviation t1 t3
-  print rotate-vector t1 45
-  print absolute-value rotate-vector t1 45
-  print rotate-vector t1 -90
-  print absolute-value rotate-vector t1 90
+  ;;print calculate-angle-deviation t1 t2
+  ;;print calculate-angle-deviation t1 t3
+  ;;print rotate-vector t1 45
+  ;;print absolute-value rotate-vector t1 45
+  ;;print rotate-vector t1 -90
+  ;;print absolute-value rotate-vector t1 90
 end
 
 to go
@@ -182,7 +182,7 @@ end
 ;; calculates the distance between the point d and the straight line define by the point a and the direction b
 ;; https://de.serlo.org/mathe/geometrie/analytische-geometrie/abstaende-winkel/abstaende/abstand-punktes-einer-geraden-berechnen-analytische-geometrie
 to-report calculate-distance [a b d]
-  report abs (calculate-z-component-2d-crossproduct (minus-vectors d a) b) / absolute-value b
+  report (calculate-z-component-2d-crossproduct (minus-vectors d a) b) / absolute-value b
 end
 
 ;; http://stackoverflow.com/a/243984
@@ -193,17 +193,20 @@ end
 to-report calculate-maxwidth
   let maxwidth 0
   let maxwidth2 0
+  let myabsdistance 0
   let centroid calculate-centroid
   ask turtles[
     let mydistance calculate-distance centroid average-direction c
-    if maxwidth < mydistance [
-      set maxwidth mydistance
-    ]
-    if maxwidth > mydistance [
+    ;;print mydistance
+    ifelse mydistance < 0 [
+      set myabsdistance abs mydistance
+      if maxwidth < myabsdistance [
+      set maxwidth myabsdistance
+      ]
+    ][
      if mydistance > maxwidth2 [
       set maxwidth2 mydistance
-     ]
-    ]
+     ]]
   ]
   report maxwidth + maxwidth2
 end
@@ -211,20 +214,22 @@ end
 to-report calculate-maxlength
   let maxlength 0
   let maxlength2 0
+  let myabsdistance 0
   let centroid calculate-centroid
   let orthogonal array:from-list (list 0 0)
   array:set orthogonal 0 array:item average-direction 1
   array:set orthogonal 1 (-1) * (array:item average-direction 0)
   ask turtles[
     let mydistance calculate-distance centroid orthogonal c
-    if maxlength < mydistance [
-      set maxlength mydistance
-    ]
-    if maxlength > mydistance [
+    ifelse mydistance < 0 [
+      set myabsdistance abs mydistance
+      if maxlength < myabsdistance [
+      set maxlength myabsdistance
+      ]
+    ][
      if mydistance > maxlength2 [
       set maxlength2 mydistance
-     ]
-    ]
+     ]]
   ]
   report maxlength + maxlength2
 end
@@ -273,7 +278,7 @@ BUTTON
 47
 go
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -309,7 +314,7 @@ avoidance_range
 avoidance_range
 0
 2
-1.0
+0.8
 0.1
 1
 NIL
@@ -324,7 +329,7 @@ following_range
 following_range
 avoidance_range
 100
-50.0
+19.6
 1
 1
 NIL
@@ -377,7 +382,7 @@ INPUTBOX
 181
 107
 number_herd_members
-200.0
+50.0
 1
 0
 Number
@@ -391,7 +396,7 @@ speed
 speed
 0
 10
-5.5
+1.5
 0.1
 1
 NIL
