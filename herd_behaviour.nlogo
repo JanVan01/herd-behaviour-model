@@ -280,7 +280,7 @@ BUTTON
 47
 go
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -331,7 +331,7 @@ following_range
 following_range
 avoidance_range
 100
-50.0
+19.6
 1
 1
 NIL
