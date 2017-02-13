@@ -173,7 +173,17 @@ to-report calculate-average-direction
 end
 
 to-report calculate-angle-deviation[a b]
-  report acos ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
+  let temp ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
+  ;; This is a hack to avoid crashes when the above is bigger 1 or smaller -1 where acos is not defined for real numbers
+  if temp > 1 [
+    set temp 1
+    print "rounding"
+  ]
+  if temp < -1 [
+    set temp -1
+    print "rounding"
+  ]
+  report acos temp
 end
 
 to-report calculate-accuracy[a b]
@@ -362,7 +372,7 @@ weight
 weight
 0
 2
-2.0
+0.5
 0.1
 1
 NIL
@@ -374,7 +384,7 @@ INPUTBOX
 181
 107
 number_herd_members
-50.0
+100.0
 1
 0
 Number
@@ -494,7 +504,7 @@ max_turn_angle
 max_turn_angle
 0
 180
-180.0
+60.0
 1
 1
 NIL
