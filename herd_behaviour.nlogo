@@ -6,7 +6,7 @@ globals [
   accuracy
   elongation
   g-dir ;; prefered direction there can be multiple prefered directions
-  window
+  window ;; number of timesteps between which the average direction is measured
   ;; avoidance_range
   ;; following_range
   ;; percent_informed - proportion of informed individuals
@@ -16,19 +16,19 @@ globals [
 
 turtles-own [
   v-dir ;; direction vector - current direction
-
+  d-dir ;; desired direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
   w ;; weight with which prefered direction is included
   c ;; c (position vector) - location
-  d-dir ;; future direction vector (array) that is calculated and applied in the end whe all turtles have calcultated their directions
 ]
 
 to setup
   clear-all
   reset-ticks
-  set window 25 ;; window-size for calculating group direction
+  ;; window-size for calculating group direction
+  set window 25
   set centroid-array array:from-list n-values window [0]
+  ;; set desired direction
   set g-dir unit-vector array:from-list(list 1 1)
-
   create-turtles number_herd_members [
     set xcor (random-float 10) - 100
     set ycor (random-float 10) - 100
@@ -47,15 +47,17 @@ end
 to go
   find-desired-direction
   move
-
-  ;; calculation of group accuracy
-  array:set centroid-array (ticks mod window) calculate-centroid
-  if ticks > window[
-    set average-direction unit-vector calculate-average-direction
-    set accuracy calculate-accuracy average-direction g-dir
-    set elongation calculate-elongation
-  ]
+  calculate-stats
   tick
+end
+
+to calculate-stats
+ array:set centroid-array (ticks mod window) calculate-centroid
+ if ticks > window [
+   set average-direction unit-vector calculate-average-direction
+   set accuracy calculate-accuracy average-direction g-dir
+   set elongation calculate-elongation
+ ]
 end
 
 to find-desired-direction
@@ -91,8 +93,8 @@ end
 
 to move
   ask turtles [
-    turn-in-desired-direction
     ;; set the direction to the newly calculated one
+    turn-in-desired-direction
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
@@ -105,6 +107,7 @@ to turn-in-desired-direction
     ;; The angle is smaller than the maximum turning angle
     set v-dir d-dir
   ][
+    ;; The angle is bigger than the maximum turning angle the turtle only turns the maximum turning angle
     ifelse calculate-z-component-2d-crossproduct v-dir d-dir <= 0 [
       set v-dir rotate-vector v-dir (max_turn_angle * -1)
     ][
@@ -113,14 +116,16 @@ to turn-in-desired-direction
   ]
 end
 
-to-report multiply-vector-number[arr num] ;; multiplys a vector and a scalar
+;; multiplys a vector and a scalar
+to-report multiply-vector-number[arr num]
   let result array:from-list (list 0 0)
   array:set result 0 ((array:item arr 0) * num)
   array:set result 1 ((array:item arr 1) * num)
   report result
 end
 
-to-report multiply-vector-vector[a b] ;; multiplys a vector by a vector
+;; multiplys a vector by a vector
+to-report multiply-vector-vector[a b]
   report ((array:item a 0) * (array:item b 0)) + ((array:item a 1) * (array:item b 1))
 end
 
@@ -138,12 +143,14 @@ to-report plus-vectors[x y]
   report result
 end
 
+;; calculates the absolute value of a vector
 to-report absolute-value[vector]
   let x array:item vector 0
   let y array:item vector 1
   report sqrt(x ^ 2 + y ^ 2)
 end
 
+;; calculates the unit vector (length = 1) with the same direction as the input vector
 to-report unit-vector[vector]
   let a absolute-value vector
   let result array:from-list (list 0 0)
@@ -152,6 +159,7 @@ to-report unit-vector[vector]
   report result
 end
 
+;; returns a pseudo random direction vector with the length 1
 to-report pseudo-random-vector
   let x (random-float 2) - 1
   let y (random-float 2) - 1
@@ -309,9 +317,9 @@ NIL
 
 SLIDER
 9
-219
+174
 181
-252
+207
 avoidance_range
 avoidance_range
 0
@@ -324,9 +332,9 @@ HORIZONTAL
 
 SLIDER
 9
-252
+207
 181
-285
+240
 following_range
 following_range
 avoidance_range
@@ -351,17 +359,6 @@ percent_informed
 1
 NIL
 HORIZONTAL
-
-SWITCH
-9
-174
-181
-207
-multiple_directions
-multiple_directions
-1
-1
--1000
 
 SLIDER
 9
@@ -391,9 +388,9 @@ Number
 
 SLIDER
 9
-285
+240
 181
-318
+273
 speed
 speed
 0
@@ -433,39 +430,6 @@ accuracy
 1
 11
 
-MONITOR
-181
-522
-521
-567
-NIL
-average-direction
-5
-1
-11
-
-MONITOR
-344
-567
-671
-612
-NIL
-calculate-angle-deviation average-direction g-dir
-17
-1
-11
-
-MONITOR
-521
-522
-858
-567
-NIL
-g-dir
-17
-1
-11
-
 PLOT
 699
 208
@@ -497,9 +461,9 @@ elongation
 
 SLIDER
 9
-318
+273
 181
-351
+306
 max_turn_angle
 max_turn_angle
 0
