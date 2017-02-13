@@ -801,6 +801,41 @@ setup
 repeat 180 [ go ]
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="herd_behaviour_elongation_accuracy" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="250"/>
+    <metric>accuracy</metric>
+    <metric>elongation</metric>
+    <enumeratedValueSet variable="max_turn_angle">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_herd_members">
+      <value value="10"/>
+      <value value="30"/>
+      <value value="50"/>
+      <value value="100"/>
+      <value value="200"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="percent_informed" first="0" step="10" last="100"/>
+    <enumeratedValueSet variable="multiple_directions">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="weight">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="avoidance_range">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="speed">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="following_range">
+      <value value="19.6"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
