@@ -105,7 +105,7 @@ to turn-in-desired-direction
     ;; The angle is smaller than the maximum turning angle
     set v-dir d-dir
   ][
-    ifelse calculate-z-component-2d-crossproduct v-dir d-dir >= 0 [
+    ifelse calculate-z-component-2d-crossproduct v-dir d-dir <= 0 [
       set v-dir rotate-vector v-dir (max_turn_angle * -1)
     ][
       set v-dir rotate-vector v-dir max_turn_angle
@@ -226,7 +226,7 @@ to-report calculate-elongation
   report len / width
 end
 
-;; rotates a vector angle degrees left
+;; rotates a vector angle degrees to the left
 to-report rotate-vector [vector angle]
   let result array:from-list (list 0 0)
   let x array:item vector 0
