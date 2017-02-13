@@ -42,6 +42,15 @@ to setup
     set w  weight
     set color red
   ]
+  let t1 array:from-list (list 1 1)
+  let t2 array:from-list (list 1 0)
+  let t3 array:from-list (list 0 1)
+  ;;print calculate-angle-deviation t1 t2
+  ;;print calculate-angle-deviation t1 t3
+  ;;print rotate-vector t1 45
+  ;;print absolute-value rotate-vector t1 45
+  ;;print rotate-vector t1 -90
+  ;;print absolute-value rotate-vector t1 90
 end
 
 to go
@@ -160,71 +169,44 @@ to-report calculate-average-direction
 end
 
 to-report calculate-angle-deviation[a b]
-  report (multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b))
+  report acos ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
 end
 
 to-report calculate-accuracy[a b]
   let result calculate-angle-deviation a b
-  set result ((acos result) / 360)
+  set result (result / 360)
   set result (1 - result)
   report result
 end
 
-to-report calculate-cross-product[a b]
-  let result array:from-list (list 0 0 0)
-  array:set result 0 ((array:item a 1) * (array:item b 2)) - ((array:item a 2) * (array:item b 1))
-  array:set result 1 ((array:item a 2) * (array:item b 0)) - ((array:item a 0) * (array:item b 2))
-  array:set result 2 ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
-  report result
+;; calculates the distance between the point d and the straight line define by the point a and the direction b
+;; https://de.serlo.org/mathe/geometrie/analytische-geometrie/abstaende-winkel/abstaende/abstand-punktes-einer-geraden-berechnen-analytische-geometrie
+to-report calculate-distance [a b d]
+  report (calculate-z-component-2d-crossproduct (minus-vectors d a) b) / absolute-value b
 end
 
-
-to-report minus-vectors-threeD[x y]
-  let result array:from-list (list 0 0 0)
-  array:set result 0 ((array:item x 0) - (array:item y 0))
-  array:set result 1 ((array:item x 1) - (array:item y 1))
-  array:set result 2 ((array:item x 2) - (array:item y 2))
-  report result
-end
-
-to-report absolute-value-threeD[vector]
-  let x array:item vector 0
-  let y array:item vector 1
-  let z array:item vector 2
-  report sqrt(x ^ 2 + y ^ 2 + z ^ 2)
-end
-
-to-report calculate-distance[a b d] ;; centroid average-direction point
-  ;; make three dimensional vectors
-  let a3 array:from-list (list 0 0 0)
-  let b3 array:from-list (list 0 0 0)
-  let d3 array:from-list (list 0 0 0)
-  array:set a3 0 array:item a 0
-  array:set a3 1 array:item a 1
-  array:set a3 2 0
-  array:set b3 0 array:item b 0
-  array:set b3 1 array:item b 1
-  array:set b3 2 0
-  array:set d3 0 array:item d 0
-  array:set d3 1 array:item d 1
-  array:set d3 2 0
-  report absolute-value-threeD calculate-cross-product b3 minus-vectors-threeD d3 a3
+;; http://stackoverflow.com/a/243984
+to-report calculate-z-component-2d-crossproduct [a b]
+  report ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
 end
 
 to-report calculate-maxwidth
   let maxwidth 0
   let maxwidth2 0
+  let myabsdistance 0
   let centroid calculate-centroid
   ask turtles[
     let mydistance calculate-distance centroid average-direction c
-    if maxwidth < mydistance [
-      set maxwidth mydistance
-    ]
-    if maxwidth > mydistance [
+    ;;print mydistance
+    ifelse mydistance < 0 [
+      set myabsdistance abs mydistance
+      if maxwidth < myabsdistance [
+      set maxwidth myabsdistance
+      ]
+    ][
      if mydistance > maxwidth2 [
       set maxwidth2 mydistance
-     ]
-    ]
+     ]]
   ]
   report maxwidth + maxwidth2
 end
@@ -232,29 +214,35 @@ end
 to-report calculate-maxlength
   let maxlength 0
   let maxlength2 0
+  let myabsdistance 0
   let centroid calculate-centroid
   let orthogonal array:from-list (list 0 0)
   array:set orthogonal 0 array:item average-direction 1
   array:set orthogonal 1 (-1) * (array:item average-direction 0)
   ask turtles[
     let mydistance calculate-distance centroid orthogonal c
-    if maxlength < mydistance [
-      set maxlength mydistance
-    ]
-    if maxlength > mydistance [
+    ifelse mydistance < 0 [
+      set myabsdistance abs mydistance
+      if maxlength < myabsdistance [
+      set maxlength myabsdistance
+      ]
+    ][
      if mydistance > maxlength2 [
       set maxlength2 mydistance
-     ]
-    ]
+     ]]
   ]
   report maxlength + maxlength2
 end
 
-
-
-
-
-
+;; rotates a vector angle degrees left
+to-report rotate-vector [vector angle]
+  let result array:from-list (list 0 0)
+  let x array:item vector 0
+  let y array:item vector 1
+  array:set result 0 (x * cos angle) - (y * sin angle);
+  array:set result 1 (x * sin angle) + (y * cos angle);
+  report result
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 181
@@ -290,7 +278,7 @@ BUTTON
 47
 go
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -326,7 +314,7 @@ avoidance_range
 avoidance_range
 0
 2
-1.0
+0.8
 0.1
 1
 NIL
@@ -341,7 +329,7 @@ following_range
 following_range
 avoidance_range
 100
-50.0
+19.6
 1
 1
 NIL
@@ -394,7 +382,7 @@ INPUTBOX
 181
 107
 number_herd_members
-200.0
+50.0
 1
 0
 Number
@@ -408,7 +396,7 @@ speed
 speed
 0
 10
-5.5
+1.5
 0.1
 1
 NIL
