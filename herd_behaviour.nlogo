@@ -42,18 +42,23 @@ to setup
     set w  weight
     set color red
   ]
-  let t1 array:from-list (list 1 1)
-  let t2 array:from-list (list 1 0)
-  let t3 array:from-list (list 0 1)
-  ;;print calculate-angle-deviation t1 t2
-  ;;print calculate-angle-deviation t1 t3
-  ;;print rotate-vector t1 45
-  ;;print absolute-value rotate-vector t1 45
-  ;;print rotate-vector t1 -90
-  ;;print absolute-value rotate-vector t1 90
 end
 
 to go
+  find-desired-direction
+  move
+
+  ;; calculation of group accuracy
+  array:set centroid-array (ticks mod window) calculate-centroid
+  if ticks > window[
+    set average-direction unit-vector calculate-average-direction
+    set accuracy calculate-accuracy average-direction g-dir
+    set elongation calculate-elongation
+  ]
+  tick
+end
+
+to find-desired-direction
   ask turtles[
     ;; temporary direction vector that is available to all turtles in the ask statements below
     ;; help variable to allow calculation the sum from the formula
@@ -82,30 +87,29 @@ to go
       ]
     ]
   ]
-  move
-
-  ;; calculation of group accuracy
-  array:set centroid-array (ticks mod window) calculate-centroid
-  if ticks > window[
-    set average-direction unit-vector calculate-average-direction
-    set accuracy calculate-accuracy average-direction g-dir
-
-    ;; calculation of group elongation
-    let bbxlength calculate-maxlength
-    let bbxwidth calculate-maxwidth
-    set elongation (bbxlength / bbxwidth)
-  ]
-  tick
 end
 
 to move
   ask turtles [
+    turn-in-desired-direction
     ;; set the direction to the newly calculated one
-    set v-dir d-dir
     let temp-v multiply-vector-number v-dir speed
     set c plus-vectors c temp-v
     set xcor array:item c 0
     set ycor array:item c 1
+  ]
+end
+
+to turn-in-desired-direction
+  ifelse calculate-angle-deviation v-dir d-dir <= max_turn_angle [
+    ;; The angle is smaller than the maximum turning angle
+    set v-dir d-dir
+  ][
+    ifelse calculate-z-component-2d-crossproduct v-dir d-dir <= 0 [
+      set v-dir rotate-vector v-dir (max_turn_angle * -1)
+    ][
+      set v-dir rotate-vector v-dir max_turn_angle
+    ]
   ]
 end
 
@@ -169,7 +173,17 @@ to-report calculate-average-direction
 end
 
 to-report calculate-angle-deviation[a b]
-  report acos ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
+  let temp ((multiply-vector-vector a b) / ((absolute-value a) * (absolute-value b)))
+  ;; This is a hack to avoid crashes when the above is bigger 1 or smaller -1 where acos is not defined for real numbers
+  if temp > 1 [
+    set temp 1
+    print "rounding"
+  ]
+  if temp < -1 [
+    set temp -1
+    print "rounding"
+  ]
+  report acos temp
 end
 
 to-report calculate-accuracy[a b]
@@ -182,6 +196,10 @@ end
 ;; calculates the distance between the point d and the straight line define by the point a and the direction b
 ;; https://de.serlo.org/mathe/geometrie/analytische-geometrie/abstaende-winkel/abstaende/abstand-punktes-einer-geraden-berechnen-analytische-geometrie
 to-report calculate-distance [a b d]
+  report abs calculate-distance-with-direction a b d
+end
+
+to-report calculate-distance-with-direction [a b d]
   report (calculate-z-component-2d-crossproduct (minus-vectors d a) b) / absolute-value b
 end
 
@@ -190,51 +208,35 @@ to-report calculate-z-component-2d-crossproduct [a b]
   report ((array:item a 0) * (array:item b 1)) - ((array:item a 1) * (array:item b 0))
 end
 
-to-report calculate-maxwidth
-  let maxwidth 0
-  let maxwidth2 0
-  let myabsdistance 0
-  let centroid calculate-centroid
+;; calculates the width of a bounding box around all turtles aligned with a line defined by point a and direction vector b
+to-report calculate-bbox-width [point direction]
+  let maxdist-right 0
+  let maxdist-left 0
   ask turtles[
-    let mydistance calculate-distance centroid average-direction c
-    ;;print mydistance
-    ifelse mydistance < 0 [
-      set myabsdistance abs mydistance
-      if maxwidth < myabsdistance [
-      set maxwidth myabsdistance
-      ]
-    ][
-     if mydistance > maxwidth2 [
-      set maxwidth2 mydistance
-     ]]
+    let dist calculate-distance-with-direction point direction c
+    if maxdist-right < dist [
+      set maxdist-right dist
+    ]
+    if maxdist-left > dist [
+      set maxdist-left dist
+    ]
   ]
-  report maxwidth + maxwidth2
+  report maxdist-right + abs maxdist-left
 end
 
-to-report calculate-maxlength
-  let maxlength 0
-  let maxlength2 0
-  let myabsdistance 0
+to-report calculate-elongation
   let centroid calculate-centroid
-  let orthogonal array:from-list (list 0 0)
-  array:set orthogonal 0 array:item average-direction 1
-  array:set orthogonal 1 (-1) * (array:item average-direction 0)
-  ask turtles[
-    let mydistance calculate-distance centroid orthogonal c
-    ifelse mydistance < 0 [
-      set myabsdistance abs mydistance
-      if maxlength < myabsdistance [
-      set maxlength myabsdistance
-      ]
-    ][
-     if mydistance > maxlength2 [
-      set maxlength2 mydistance
-     ]]
-  ]
-  report maxlength + maxlength2
+
+  let width calculate-bbox-width centroid average-direction
+
+  let orthogonal rotate-vector average-direction 90
+
+  let len calculate-bbox-width centroid orthogonal
+
+  report len / width
 end
 
-;; rotates a vector angle degrees left
+;; rotates a vector angle degrees to the left
 to-report rotate-vector [vector angle]
   let result array:from-list (list 0 0)
   let x array:item vector 0
@@ -314,7 +316,7 @@ avoidance_range
 avoidance_range
 0
 2
-0.8
+0.5
 0.1
 1
 NIL
@@ -344,7 +346,7 @@ percent_informed
 percent_informed
 0
 100
-20.0
+10.0
 1
 1
 NIL
@@ -370,7 +372,7 @@ weight
 weight
 0
 2
-1.0
+0.5
 0.1
 1
 NIL
@@ -382,7 +384,7 @@ INPUTBOX
 181
 107
 number_herd_members
-50.0
+100.0
 1
 0
 Number
@@ -396,7 +398,7 @@ speed
 speed
 0
 10
-1.5
+2.0
 0.1
 1
 NIL
@@ -475,7 +477,7 @@ NIL
 0.0
 200.0
 0.0
-10.0
+5.0
 true
 false
 "" ""
@@ -492,6 +494,21 @@ elongation
 5
 1
 11
+
+SLIDER
+9
+318
+181
+351
+max_turn_angle
+max_turn_angle
+0
+180
+60.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@
